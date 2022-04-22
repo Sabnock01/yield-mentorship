@@ -12,16 +12,16 @@ contract Registry {
     mapping (string => address) holder;
 
     event Registered(address to, string name);
-    event ReleasedName(string name, address fromHolder);
+    event Released(address from, string name);
 
     /**
     @notice Registers a name
     @param name The name to register
      */
     function register(string calldata name) public {
-        require(nameToHolder[name] == address(0), "Already registered!");
-        nameToHolder[name] = msg.sender;
-        emit RegisteredName(name, msg.sender);
+        require(holder[name] == address(0), "Already registered!");
+        holder[name] = msg.sender;
+        emit Registered(msg.sender, name);
     }
 
     /**
@@ -29,8 +29,8 @@ contract Registry {
     @param name The name to release
      */
     function release(string calldata name) public {
-        require(nameToHolder[name] == msg.sender, "You haven't registered this!");
-        nameToHolder[name] = address(0);
-        emit ReleasedName(name, msg.sender);
+        require(holder[name] == msg.sender, "You haven't registered this!");
+        delete holder[name];
+        emit Released(msg.sender, name);
     }
 }

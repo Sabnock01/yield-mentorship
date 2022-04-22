@@ -2,45 +2,64 @@
 pragma solidity ^0.8.12;
 
 import "../Registry.sol";
-import "forge-std/Vm.sol";
+import {console} from "forge-std/console.sol";
+import {Vm} from "forge-std/Vm.sol";
 
-contract RegistryTest {
+contract ZeroState {
     Registry public registry;
-    Vm internal constant vm = Vm(address(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D));
+    Vm public vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     address otherSender;
 
-    event RegisteredName(string name, address toHolder);
-    event ReleasedName(string name, address fromHolder);
+    event Registered(address to, string name);
+    event Released(address from, string name);
 
-    function setUp() public {
+    function setUp() public virtual {
         registry = new Registry();
         otherSender = 0x0000000000000000000000000000000000000001;
     }
 
-    function testRegisterName() public {
-        vm.expectEmit(false, false, false, true);
-        emit RegisteredName("Sabnock01", address(this));
-        registry.register("Sabnock01");
+    function testCannotReleaseUnheldName() public {
+        console.log("Cannot release a name you don't already hold");
+        vm.expectRevert(bytes("You haven't registered this!"));
+        registry.release("alcueca");
     }
 
-    function testReleaseName() public {
-        registry.register("Sabnock01");
-        vm.expectEmit(false, false, false, true);
-        emit ReleasedName("Sabnock01", address(this));
-        registry.release("Sabnock01");
-    }
 
-    function testRegisterHeldName() public {
+    function testCannotRegisterHeldName() public {
+        console.log("Cannot register a name that is taken");
         registry.register("Sabnock01");
-        vm.expectRevert("Already registered!");
+        vm.expectRevert(bytes("Already registered!"));
         vm.startPrank(otherSender);
         registry.register("Sabnock01");
         vm.stopPrank();
     }
 
-    function testReleaseUnheldName() public {
-        vm.expectRevert("You haven't registered this!");
-        registry.release("alcueca");
+    function testRegisterName() public {
+        console.log("Registers a name");
+        vm.expectEmit(false, false, false, true);
+        emit Registered(address(this), "Sabnock01");
+        registry.register("Sabnock01");
+    }
+}
+
+contract HasRegisteredName is ZeroState {
+    function setUp() public override {
+        super.setUp();
+        registry.register("Sabnock01");
+    }
+
+    function testReleaseName() public {
+        console.log("Releases a name");
+        vm.expectEmit(false, false, false, true);
+        emit Released(address(this), "Sabnock01");
+        registry.release("Sabnock01");
+    }
+
+    function testRegisterMultipleNames() public {
+        console.log("Can register more than one name");
+        vm.expectEmit(false, false, false, true);
+        emit Registered(address(this), "alcueca");
+        registry.register("alcueca");
     }
 }
