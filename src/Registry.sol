@@ -11,7 +11,7 @@ contract Registry {
     // mapping from names to holders
     mapping (string => address) holder;
 
-    event RegisteredName(string name, address toHolder);
+    event Registered(address to, string name);
     event ReleasedName(string name, address fromHolder);
 
     /**
