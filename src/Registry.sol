@@ -9,7 +9,7 @@ registered cannot be claimed by another until released.
 */
 contract Registry {
     // mapping from names to holders
-    mapping (string => address) nameToHolder;
+    mapping (string => address) holder;
 
     event RegisteredName(string name, address toHolder);
     event ReleasedName(string name, address fromHolder);
