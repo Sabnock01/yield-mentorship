@@ -5,7 +5,7 @@ import "../Registry.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 
-contract ZeroState {
+abstract contract TestCore {
     Registry public registry;
     Vm public vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
@@ -18,7 +18,9 @@ contract ZeroState {
         registry = new Registry();
         otherSender = 0x0000000000000000000000000000000000000001;
     }
+}
 
+contract UnregisteredState is TestCore {
     function testCannotReleaseUnheldName() public {
         console.log("Cannot release a name you don't already hold");
         vm.expectRevert(bytes("You haven't registered this!"));
@@ -41,9 +43,10 @@ contract ZeroState {
         emit Registered(address(this), "Sabnock01");
         registry.register("Sabnock01");
     }
+
 }
 
-contract HasRegisteredName is ZeroState {
+contract RegisteredState is TestCore {
     function setUp() public override {
         super.setUp();
         registry.register("Sabnock01");
