@@ -17,6 +17,7 @@ abstract contract TestCore {
     function setUp() public virtual {
         registry = new Registry();
         otherSender = 0x0000000000000000000000000000000000000001;
+        vm.label(otherSender, "otherSender");
     }
 }
 
@@ -32,9 +33,8 @@ contract UnregisteredState is TestCore {
         console.log("Cannot register a name that is taken");
         registry.register("Sabnock01");
         vm.expectRevert(bytes("Already registered!"));
-        vm.startPrank(otherSender);
+        vm.prank(otherSender);
         registry.register("Sabnock01");
-        vm.stopPrank();
     }
 
     function testRegisterName() public {
