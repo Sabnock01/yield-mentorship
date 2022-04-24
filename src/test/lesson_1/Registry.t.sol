@@ -21,7 +21,14 @@ abstract contract TestCore {
     }
 }
 
-contract UnregisteredState is TestCore {
+abstract contract RegisteredState is TestCore {
+    function setUp() public override {
+        super.setUp();
+        registry.register("Sabnock01");
+    }
+}
+
+contract UnregisteredTest is TestCore {
     function testCannotReleaseUnheldName() public {
         console.log("Cannot release a name you don't already hold");
         vm.expectRevert(bytes("You haven't registered this!"));
@@ -46,12 +53,7 @@ contract UnregisteredState is TestCore {
 
 }
 
-contract RegisteredState is TestCore {
-    function setUp() public override {
-        super.setUp();
-        registry.register("Sabnock01");
-    }
-
+contract RegisteredTest is RegisteredState {
     function testReleaseName() public {
         console.log("Releases a name");
         vm.expectEmit(false, false, false, true);
