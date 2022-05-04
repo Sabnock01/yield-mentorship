@@ -31,7 +31,7 @@ contract Vault {
     @param amount the amount to deposit
      */
     function deposit(uint256 amount) public {
-        balances[msg.sender] += amount;
+        unchecked { balances[msg.sender] += amount; }
         bool successful = token.transferFrom(msg.sender, address(this), amount);
         require(successful, "Deposit failed!"); 
         emit Deposited(msg.sender, amount);
@@ -43,7 +43,7 @@ contract Vault {
      */
     function withdraw(uint256 amount) public {
         require(balances[msg.sender] > amount, "Balance too low!");
-        balances[msg.sender] -= amount;
+        unchecked { balances[msg.sender] -= amount; }
         bool successful = token.transfer(msg.sender, amount);
         require(successful, "Withdrawal failed!");
         emit Withdrawn(msg.sender, amount);
