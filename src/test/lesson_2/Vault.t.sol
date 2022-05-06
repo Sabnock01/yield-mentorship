@@ -2,15 +2,15 @@
 pragma solidity ^0.8.12;
 
 import "yield-utils-v2/contracts/token/IERC20.sol";
-import "yield-utils-v2/contracts/mocks/ERC20Mock.sol";
 import "../../lesson_2/Vault.sol";
+import "./FailedTransfers.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "forge-std/Test.sol";
 
 abstract contract ZeroState is Test {
     Vault public vault;
-    ERC20Mock public token;
+    FailedTransfers public token;
     // Vm public vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     event Deposited(address indexed from, uint amount);
@@ -19,7 +19,7 @@ abstract contract ZeroState is Test {
     address user;
 
     function setUp() public virtual {
-        token = new ERC20Mock("Coil Token", "COIL");
+        token = new FailedTransfers();
         vault = new Vault(token);
         user = address(1);
         vm.startPrank(user);
@@ -38,6 +38,15 @@ abstract contract WithBalance is ZeroState {
 }
 
 contract VaultTest is ZeroState {
+    function testDepositRevertsOnFailedTransfer() public {
+        console.log("Deposit reverts on failed transfer");
+        token.setFailTransfers(true);
+        vm.startPrank(user);
+        vm.expectRevert("Deposit failed!");
+        vault.deposit(1 * 10**18);
+        vm.stopPrank();
+    }
+
     function testCannotWithdrawAmountGreaterThanBalance() public {
         console.log("Cannot withdraw more than deposited");
         vm.prank(user);
@@ -56,6 +65,14 @@ contract VaultTest is ZeroState {
 }
 
 contract VaultWithBalanceTest is WithBalance {
+    function testWithdrawRevertsIfTransferFails() public {
+        console.log("Withdraw reverts on failed withdrawal");
+        token.setFailTransfers(true);
+        vm.prank(user);
+        vm.expectRevert("Withdrawal failed!");
+        vault.withdraw(1 * 10**18);
+    }
+
     function testWithdrawal() public {
         console.log("Withdraws successfully");
         vm.startPrank(user);
