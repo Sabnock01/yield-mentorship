@@ -57,6 +57,7 @@ contract ERC20WrapperTest is ZeroState {
         vm.expectEmit(true, false, false, false);
         emit Wrapped(user, 1 * 10**18);
         wrapper.wrap(1 * 10**18);
+        assertEq(wrapper.balanceOf(user), 1 * 10**18);
     }
 }
 

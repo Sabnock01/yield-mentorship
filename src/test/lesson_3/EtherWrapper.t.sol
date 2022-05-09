@@ -51,6 +51,6 @@ contract WithWrappedTokensTest is WithWrappedTokens {
         emit Unwrapped(user, 1 ether);
         wrapper.unwrap(1 ether);
         assertEq(wrapper.balanceOf(user),  5 ether - 1 ether);
-        assertTrue(user.balance == 5 ether + 1 ether );
+        assertEq(user.balance, 5 ether + 1 ether );
     }
 }
