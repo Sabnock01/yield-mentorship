@@ -32,7 +32,7 @@ contract EtherWrapper is ERC20Mock {
     ///@dev emits Unwrapped event when transfer successful and error message upon failure
     function unwrap(uint amount) public {
         _burn(msg.sender, amount);
-        (bool success, )= msg.sender.call{value: amount}("");
+        (bool success, ) = msg.sender.call{value: amount}("");
         require(success, "Failed to unwrap tokens!");
         emit Unwrapped(msg.sender, amount);
     }

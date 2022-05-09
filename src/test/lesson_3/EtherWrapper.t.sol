@@ -32,6 +32,7 @@ abstract contract WithWrappedTokens is ZeroState {
 
 contract EtherWrapperTest is ZeroState {
     function testWrap() public {
+        console.log("Wraps tokens successfully");
         vm.prank(user);
         vm.expectEmit(true, false, false, true);
         emit Wrapped(user, 1 ether);
@@ -44,6 +45,7 @@ contract EtherWrapperTest is ZeroState {
 
 contract WithWrappedTokensTest is WithWrappedTokens {
     function testUnwrap() public {
+        console.log("Unwraps tokens successfully");
         vm.prank(user);
         vm.expectEmit(true, false, false, true);
         emit Unwrapped(user, 1 ether);
