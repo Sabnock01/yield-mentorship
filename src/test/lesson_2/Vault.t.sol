@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 import "yield-utils-v2/contracts/token/IERC20.sol";
 import "../../lesson_2/Vault.sol";
-import "./FailedTransfers.sol";
+import "../mocks/FailedTransfers.sol";
 import {console} from "forge-std/console.sol";
 import {Vm} from "forge-std/Vm.sol";
 import "forge-std/Test.sol";
