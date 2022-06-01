@@ -3,6 +3,7 @@ pragma solidity ^0.8.12;
 
 import {ERC20} from "yield-utils-v2/contracts/token/ERC20.sol";
 import {IERC20} from "yield-utils-v2/contracts/token/IERC20.sol";
+import {TransferHelper} from "yield-utils-v2/contracts/token/TransferHelper.sol";
 
 /**
 @title An Fractional ERC20 wrapper/vault
@@ -12,6 +13,8 @@ import {IERC20} from "yield-utils-v2/contracts/token/IERC20.sol";
 are burned upon unwrapping
 */
 contract FractionalWrapper is ERC20 {
+    using TransferHelper for IERC20;
+    
     ///@notice The ERC20 token to wrap
     IERC20 public underlying;
     ///@notice exchange rate between asset and underlying
@@ -19,9 +22,21 @@ contract FractionalWrapper is ERC20 {
     uint256 public exchangeRate = 1e27;
 
     ///@notice Event emitted when tokens are wrapped
-    event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
+    event Deposit(
+        address indexed caller, 
+        address indexed owner, 
+        uint256 assets, 
+        uint256 shares
+    );
+
     ///@notice Event emitted when tokens are unwrapped
-    event Withdraw(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares);
+    event Withdraw(
+        address indexed caller, 
+        address indexed receiver, 
+        address indexed owner, 
+        uint256 assets, 
+        uint256 shares
+    );
 
     ///@notice Creates a fractionalized wrapper for a given ERC20 token
     ///@param token the underlying asset
@@ -65,9 +80,9 @@ contract FractionalWrapper is ERC20 {
         return convertToAssets(_balanceOf[receiver]);
     }
 
-    ///@notice
-    ///@param assets
-    ///@return shares
+    ///@notice Gives the number of shares minted from a specified number of assets
+    ///@param assets the number of assets
+    ///@return shares the number of shares
     function previewDeposit(uint256 assets) public view returns (uint256 shares) {
         return convertToShares(assets);
     }
@@ -77,74 +92,86 @@ contract FractionalWrapper is ERC20 {
     ///@param receiver the receiving address 
     ///@return shares amount of the vault asset
     function deposit(uint256 assets, address receiver) public returns (uint256 shares) {
+        shares = convertToShares(assets);
+        _mint(receiver, shares);
+        underlying.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
-    ///@notice
-    ///@param receiver
-    ///@return maxShares
+    ///@notice Gives the maximum amount of shares that can be minted by the receiver
+    ///@param receiver the receiving address
+    ///@return maxShares the maximum amount of shares available for mint
     function maxMint(address receiver) public view returns (uint256 maxShares) {
         return convertToShares(_balanceOf[receiver]);
     }
 
-    ///@notice
-    ///@param shares
-    ///@return assets
+    ///@notice Gives the number of assets minted from a specified number of shares
+    ///@param shares the number of shares
+    ///@return assets the number of assets
     function previewMint(uint256 shares) public view returns (uint256 assets) {
         return convertToAssets(shares);
     }
 
-    ///@notice 
-    ///@param shares
-    ///@param receiver
-    ///@return assets
+    ///@notice Mints specified number of shares for the receiver
+    ///@param shares amount of shares to be minted
+    ///@param receiver the receiving address
+    ///@return assets amount of the underlying asset
     function mint(uint256 shares, address receiver) public returns (uint256 assets) {
+        assets = convertToAssets(shares);
+        _mint(receiver, shares);
+        underlying.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
-    ///@notice
-    ///@param owner
-    ///@return maxAssets
-    function maxWithdraw(address owner) public returns (uint256 maxAssets) {
+    ///@notice Gives the maximum amount of assets that can be withdrawn by the receiver
+    ///@param owner the owner address
+    ///@return maxAssets the maximum amount of assets available for withdrawal
+    function maxWithdraw(address owner) public view returns (uint256 maxAssets) {
         return convertToAssets(_balanceOf[owner]);
     }
 
-    ///@notice
-    ///@param assets
-    ///@return shares
+    ///@notice Gives the number of shares burned from a specified number of assets
+    ///@param assets the number of assets
+    ///@return shares the number of shares
     function previewWithdraw(uint256 assets) public view returns (uint256 shares) {
         return convertToShares(assets);
     }
 
-    ///@notice 
-    ///@param assets
-    ///@param receiver
-    ///@param owner
-    ///@return shares
+    ///@notice Withdraws specified number of assets for the receiver
+    ///@param assets the number of assets
+    ///@param receiver the receiving address
+    ///@param owner the owning address
+    ///@return shares amount of vault asset
     function withdraw(uint256 assets, address receiver, address owner) public returns (uint256 shares) {
-         emit Withdraw(msg.sender, receiver, owner, assets, shares);
+        shares = convertToShares(assets);
+        _burn(owner, shares);
+        underlying.safeTransfer(receiver, assets);
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
-    ///@notice
-    ///@param owner
-    ///@return maxShares
+    ///@notice Gives the maximum number of shares that can be burned by the owner
+    ///@param owner the owner address
+    ///@return maxShares the maximum amount of shares available for burn
     function maxRedeem(address owner) public view returns (uint256 maxShares) {
         return convertToShares(_balanceOf[owner]);
     }
 
-    ///@notice
-    ///@param shares
-    ///@return assets
+    ///@notice Gives the number of assets withdrawn from a specified number of shares
+    ///@param shares the number of shares
+    ///@return assets the number of assets
     function previewRedeem(uint256 shares) public view returns (uint256 assets) {
         return convertToAssets(shares);
     }
 
-    ///@notice 
-    ///@param shares 
-    ///@param receiver
-    ///@param owner
-    ///@return assets
+    ///@notice Withdraws specified number of assets in terms of shares for the receiver
+    ///@param shares the number of shares
+    ///@param receiver the receiving address
+    ///@param owner the owner address
+    ///@return assets amount of the underlying asset
     function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
-         emit Withdraw(msg.sender, receiver, owner, assets, shares);
+        assets = convertToAssets(shares);
+        _burn(owner, shares);
+        underlying.safeTransfer(receiver, assets);
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 }
