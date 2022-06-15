@@ -18,8 +18,8 @@ contract FractionalWrapper is ERC20 {
     ///@notice The ERC20 token to wrap
     IERC20 public underlying;
     ///@notice exchange rate between asset and underlying
-    ///@dev set to 27 decimal places
-    uint256 public exchangeRate = 1e27;
+    ///@dev set to 26 decimal places
+    uint256 public exchangeRate;
 
     ///@notice Event emitted when tokens are wrapped
     event Deposit(
@@ -42,8 +42,9 @@ contract FractionalWrapper is ERC20 {
     ///@param token the underlying asset
     ///@param name the name of the underlying
     ///@param symbol the symbol of the underlying
-    constructor(IERC20 token, string memory name, string memory symbol) ERC20(name, symbol, 18) {
+    constructor(IERC20 token, uint256 _exchangeRate, string memory name, string memory symbol) ERC20(name, symbol, 18) {
         underlying = token;
+        exchangeRate = _exchangeRate;
     }
 
     ///@notice The address of the underlying token used for the vault for accounting, depositing, and withdrawing
@@ -74,10 +75,9 @@ contract FractionalWrapper is ERC20 {
     }
 
     ///@notice Gives the maximum amount of assets that can be deposited by the receiver
-    ///@param receiver the receiving address
     ///@return maxAssets the maximum amount of assets available for deposit
-    function maxDeposit(address receiver) public view returns (uint256 maxAssets) {
-        return convertToAssets(_balanceOf[receiver]);
+    function maxDeposit(address) public pure returns (uint256 maxAssets) {
+        return type(uint256).max;
     }
 
     ///@notice Gives the number of shares minted from a specified number of assets
@@ -99,10 +99,9 @@ contract FractionalWrapper is ERC20 {
     }
 
     ///@notice Gives the maximum amount of shares that can be minted by the receiver
-    ///@param receiver the receiving address
     ///@return maxShares the maximum amount of shares available for mint
-    function maxMint(address receiver) public view returns (uint256 maxShares) {
-        return convertToShares(_balanceOf[receiver]);
+    function maxMint(address) public pure returns (uint256 maxShares) {
+        return type(uint256).max;
     }
 
     ///@notice Gives the number of assets minted from a specified number of shares
@@ -153,7 +152,7 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owner address
     ///@return maxShares the maximum amount of shares available for burn
     function maxRedeem(address owner) public view returns (uint256 maxShares) {
-        return convertToShares(_balanceOf[owner]);
+        return _balanceOf[owner];
     }
 
     ///@notice Gives the number of assets withdrawn from a specified number of shares

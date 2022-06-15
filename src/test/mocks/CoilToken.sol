@@ -5,7 +5,6 @@ import "yield-utils-v2/contracts/mocks/ERC20Mock.sol";
 
 contract CoilToken is ERC20Mock {
 
-    constructor() ERC20Mock("Coil Token", "COIL") {
-
-    }
+    constructor() ERC20Mock("Coil Token", "COIL") {}
+    
 }
