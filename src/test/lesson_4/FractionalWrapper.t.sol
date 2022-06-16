@@ -171,18 +171,18 @@ contract WithTokensTest is WithTokens {
         wrapper.approve(caller, 10);
         vm.expectEmit(true, true, true, true);
         emit Withdraw(
-            caller, 
-            receiver, 
-            user, 
-            wrapper.convertToAssets(10), 
-            10
+            caller,
+            receiver,
+            user,
+            10,
+            wrapper.convertToShares(10)
         );
         vm.prank(caller);
-        wrapper.withdraw(wrapper.convertToAssets(10), receiver, user);
-        assertEq(wrapper.balanceOf(user), wrapper.convertToShares(10**18) - 10);
+        wrapper.withdraw(10, receiver, user);
+        assertEq(wrapper.balanceOf(user), wrapper.convertToShares(10**18 - 10));
         assertEq(wrapper.balanceOf(caller), 0);
         assertEq(wrapper.balanceOf(receiver), 0);
-        assertEq(token.balanceOf(receiver), wrapper.convertToAssets(10));
+        assertEq(token.balanceOf(receiver), 10);
     }
 
     function testRedeem() public {
