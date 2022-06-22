@@ -121,7 +121,7 @@ contract FractionalWrapperTest is ZeroState {
         assertEq(wrapper.previewMint(shares), wrapper.convertToAssets(shares));
     }
 
-    function testMint(address receiver)  public {shares
+    function testMint(address receiver)  public {
         console.log("Mints tokens successfully");
         vm.startPrank(user);
         token.approve(address(wrapper), 10);
