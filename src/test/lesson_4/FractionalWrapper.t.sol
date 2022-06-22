@@ -102,14 +102,16 @@ contract FractionalWrapperTest is ZeroState {
             10, 
             wrapper.convertToShares(10)
         );
-        wrapper.deposit(10, receiver);
+        uint256 shares = wrapper.deposit(10, receiver);
         vm.stopPrank();
+        assertEq(shares, wrapper.convertToShares(10));
         assertEq(wrapper.balanceOf(receiver), wrapper.convertToShares(10));
         assertEq(token.balanceOf(user), 10**18 - 10);
     }
 
     function testMaxMint(address receiver) public {
         console.log("Retrieves max mint amount successfully");
+        console.log(wrapper.totalSupply());
         assertEq(wrapper.maxDeposit(receiver), type(uint256).max);
     }
 
@@ -119,7 +121,7 @@ contract FractionalWrapperTest is ZeroState {
         assertEq(wrapper.previewMint(shares), wrapper.convertToAssets(shares));
     }
 
-    function testMint(address receiver)  public {
+    function testMint(address receiver)  public {shares
         console.log("Mints tokens successfully");
         vm.startPrank(user);
         token.approve(address(wrapper), 10);
@@ -130,8 +132,9 @@ contract FractionalWrapperTest is ZeroState {
             10,
             wrapper.convertToShares(10)
         );
-        wrapper.mint(wrapper.convertToShares(10), receiver);
+        uint256 assets = wrapper.mint(wrapper.convertToShares(10), receiver);
         vm.stopPrank();
+        assertEq(assets, 10);
         assertEq(wrapper.balanceOf(receiver), wrapper.convertToShares(10));
         assertEq(token.balanceOf(user), 10**18 - 10);
     }
@@ -178,7 +181,8 @@ contract WithTokensTest is WithTokens {
             wrapper.convertToShares(10)
         );
         vm.prank(caller);
-        wrapper.withdraw(10, receiver, user);
+        uint256 shares = wrapper.withdraw(10, receiver, user);
+        assertEq(shares, wrapper.convertToShares(10));
         assertEq(wrapper.balanceOf(user), wrapper.convertToShares(10**18 - 10));
         assertEq(wrapper.balanceOf(caller), 0);
         assertEq(wrapper.balanceOf(receiver), 0);
@@ -201,7 +205,8 @@ contract WithTokensTest is WithTokens {
             10
         );
         vm.prank(caller);
-        wrapper.redeem(10, receiver, user);
+        uint256 assets = wrapper.redeem(10, receiver, user);
+        assertEq(assets, wrapper.convertToAssets(10));
         assertEq(wrapper.balanceOf(user), wrapper.convertToShares(10**18) - 10);
         assertEq(wrapper.balanceOf(caller), 0);
         assertEq(wrapper.balanceOf(receiver), 0);

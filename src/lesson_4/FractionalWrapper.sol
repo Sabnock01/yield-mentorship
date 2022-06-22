@@ -16,7 +16,8 @@ contract FractionalWrapper is ERC20 {
     using TransferHelper for IERC20;
     
     ///@notice The ERC20 token to wrap
-    IERC20 public underlying;
+    ///@dev technically a type address to be EIP-4626 compliant but IERC20 is recognized as such by the compiler
+    IERC20 public asset;
     ///@notice exchange rate between asset and underlying
     ///@dev set to 26 decimal places
     uint256 public exchangeRate;
@@ -43,21 +44,14 @@ contract FractionalWrapper is ERC20 {
     ///@param name the name of the underlying
     ///@param symbol the symbol of the underlying
     constructor(IERC20 token, uint256 _exchangeRate, string memory name, string memory symbol) ERC20(name, symbol, 18) {
-        underlying = token;
+        asset = token;
         exchangeRate = _exchangeRate;
-    }
-
-    ///@notice The address of the underlying token used for the vault for accounting, depositing, and withdrawing
-    ///@dev Will always be an ERC20 contract
-    ///@return assetTokenAddress address of the underlying token
-    function asset() public view returns (address assetTokenAddress) {
-        return address(underlying);
     }
 
     ///@notice Total amount of the underlying asset that is “managed” by the vault
     ///@return totalManagedAssets balance of the underlying token within the vault
     function totalAssets() public view returns (uint256 totalManagedAssets) {
-        return underlying.balanceOf(address(this));
+        return asset.balanceOf(address(this));
     }
 
     ///@notice Calculates the amount of the asset (wrapped) token the user can get for their amount of the underlying
@@ -94,14 +88,14 @@ contract FractionalWrapper is ERC20 {
     function deposit(uint256 assets, address receiver) public returns (uint256 shares) {
         shares = convertToShares(assets);
         _mint(receiver, shares);
-        underlying.safeTransferFrom(msg.sender, address(this), assets);
+        asset.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
     ///@notice Gives the maximum amount of shares that can be minted by the receiver
     ///@return maxShares the maximum amount of shares available for mint
-    function maxMint(address) public pure returns (uint256 maxShares) {
-        return type(uint256).max;
+    function maxMint(address) public view returns (uint256 maxShares) {
+        return type(uint256).max - _totalSupply;
     }
 
     ///@notice Gives the number of assets minted from a specified number of shares
@@ -118,7 +112,7 @@ contract FractionalWrapper is ERC20 {
     function mint(uint256 shares, address receiver) public returns (uint256 assets) {
         assets = convertToAssets(shares);
         _mint(receiver, shares);
-        underlying.safeTransferFrom(msg.sender, address(this), assets);
+        asset.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
@@ -144,7 +138,7 @@ contract FractionalWrapper is ERC20 {
     function withdraw(uint256 assets, address receiver, address owner) public returns (uint256 shares) {
         shares = convertToShares(assets);
         _burn(owner, shares);
-        underlying.safeTransfer(receiver, assets);
+        asset.safeTransfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
@@ -170,7 +164,7 @@ contract FractionalWrapper is ERC20 {
     function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
         assets = convertToAssets(shares);
         _burn(owner, shares);
-        underlying.safeTransfer(receiver, assets);
+        asset.safeTransfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 }
