@@ -17,10 +17,10 @@ contract FractionalWrapper is ERC20 {
     
     ///@notice The ERC20 token to wrap
     ///@dev technically a type address to be EIP-4626 compliant but IERC20 is recognized as such by the compiler
-    IERC20 public asset;
+    IERC20 public immutable asset;
     ///@notice exchange rate between asset and underlying
     ///@dev set to 26 decimal places
-    uint256 public exchangeRate;
+    uint256 public immutable exchangeRate;
 
     ///@notice Event emitted when tokens are wrapped
     event Deposit(
@@ -57,14 +57,30 @@ contract FractionalWrapper is ERC20 {
     ///@notice Calculates the amount of the asset (wrapped) token the user can get for their amount of the underlying
     ///@param assets amount of the underlying token EX. DAI
     ///@return shares amount of the asset (wrapped) token EX. fyDAI
+    ///@dev public function for _convertToShares
     function convertToShares(uint256 assets) public view returns (uint256 shares) {
+        return _convertToShares(assets);
+    }
+
+    ///@notice Calculates the amount of the asset (wrapped) token the user can get for their amount of the underlying
+    ///@param assets amount of the underlying token EX. DAI
+    ///@return shares amount of the asset (wrapped) token EX. fyDAI
+    function _convertToShares(uint256 assets) internal view returns (uint256 shares) {
         return (assets * exchangeRate) / 1e27;
     }
 
     ///@notice Calculates the amount of the underlying token the user can get for their shares
     ///@param shares amount of the asset (wrapped) token EX. fyDAI
     ///@return assets amount of the underlying token EX. DAI
+    ///@dev public function for _convertToAssets
     function convertToAssets(uint256 shares) public view returns (uint256 assets) {
+        return _convertToAssets(shares);
+    }
+
+    ///@notice Calculates the amount of the underlying token the user can get for their shares
+    ///@param shares amount of the asset (wrapped) token EX. fyDAI
+    ///@return assets amount of the underlying token EX. DAI
+    function _convertToAssets(uint256 shares) public view returns (uint256 assets) {
         return (shares * 1e27) / exchangeRate;
     }
 
@@ -78,7 +94,7 @@ contract FractionalWrapper is ERC20 {
     ///@param assets the number of assets
     ///@return shares the number of shares
     function previewDeposit(uint256 assets) public view returns (uint256 shares) {
-        return convertToShares(assets);
+        return _convertToShares(assets);
     }
 
     ///@notice Mints shares for the receiver based on their assets
@@ -86,7 +102,7 @@ contract FractionalWrapper is ERC20 {
     ///@param receiver the receiving address 
     ///@return shares amount of the vault asset
     function deposit(uint256 assets, address receiver) public returns (uint256 shares) {
-        shares = convertToShares(assets);
+        shares = _convertToShares(assets);
         _mint(receiver, shares);
         asset.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
@@ -102,7 +118,7 @@ contract FractionalWrapper is ERC20 {
     ///@param shares the number of shares
     ///@return assets the number of assets
     function previewMint(uint256 shares) public view returns (uint256 assets) {
-        return convertToAssets(shares);
+        return _convertToAssets(shares);
     }
 
     ///@notice Mints specified number of shares for the receiver
@@ -110,7 +126,7 @@ contract FractionalWrapper is ERC20 {
     ///@param receiver the receiving address
     ///@return assets amount of the underlying asset
     function mint(uint256 shares, address receiver) public returns (uint256 assets) {
-        assets = convertToAssets(shares);
+        assets = _convertToAssets(shares);
         _mint(receiver, shares);
         asset.safeTransferFrom(msg.sender, address(this), assets);
         emit Deposit(msg.sender, receiver, assets, shares);
@@ -120,14 +136,14 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owner address
     ///@return maxAssets the maximum amount of assets available for withdrawal
     function maxWithdraw(address owner) public view returns (uint256 maxAssets) {
-        return convertToAssets(_balanceOf[owner]);
+        return _convertToAssets(_balanceOf[owner]);
     }
 
     ///@notice Gives the number of shares burned from a specified number of assets
     ///@param assets the number of assets
     ///@return shares the number of shares
     function previewWithdraw(uint256 assets) public view returns (uint256 shares) {
-        return convertToShares(assets);
+        return _convertToShares(assets);
     }
 
     ///@notice Withdraws specified number of assets for the receiver
@@ -136,7 +152,7 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owning address
     ///@return shares amount of vault asset
     function withdraw(uint256 assets, address receiver, address owner) public returns (uint256 shares) {
-        shares = convertToShares(assets);
+        shares = _convertToShares(assets);
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
@@ -153,7 +169,7 @@ contract FractionalWrapper is ERC20 {
     ///@param shares the number of shares
     ///@return assets the number of assets
     function previewRedeem(uint256 shares) public view returns (uint256 assets) {
-        return convertToAssets(shares);
+        return _convertToAssets(shares);
     }
 
     ///@notice Withdraws specified number of assets in terms of shares for the receiver
@@ -162,7 +178,7 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owner address
     ///@return assets amount of the underlying asset
     function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
-        assets = convertToAssets(shares);
+        assets = _convertToAssets(shares);
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
