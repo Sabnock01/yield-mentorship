@@ -80,7 +80,7 @@ contract FractionalWrapper is ERC20 {
     ///@notice Calculates the amount of the underlying token the user can get for their shares
     ///@param shares amount of the asset (wrapped) token EX. fyDAI
     ///@return assets amount of the underlying token EX. DAI
-    function _convertToAssets(uint256 shares) public view returns (uint256 assets) {
+    function _convertToAssets(uint256 shares) internal view returns (uint256 assets) {
         return (shares * 1e27) / exchangeRate;
     }
 
