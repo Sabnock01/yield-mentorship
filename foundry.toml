@@ -2,8 +2,6 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
-remappings = [
-    'forge-std/=lib/forge-std/src/',
-]
+gas_reports = ["*"]
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import "../../lesson_1/Registry.sol";
 import {console} from "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {ERC20Wrapper} from "../../lesson_3/ERC20Wrapper.sol";
 import {FailedTransfers} from "../mocks/FailedTransfers.sol";
 
-abstract contract ZeroState is Test{
+abstract contract ZeroState is Test {
     ERC20Wrapper public wrapper;
     FailedTransfers public token;
 
