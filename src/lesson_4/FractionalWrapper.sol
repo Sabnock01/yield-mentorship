@@ -156,7 +156,6 @@ contract FractionalWrapper is ERC20 {
 
         if (msg.sender != owner) {
             uint256 allowed = _convertToShares(_allowance[owner][msg.sender]);
-            require(allowed > 0, "Insufficient allowance");
 
             if (allowed != type(uint256).max) _allowance[owner][msg.sender] = allowed - shares;     // will cause underflow if allowed = 0 without above require
         }
@@ -188,7 +187,6 @@ contract FractionalWrapper is ERC20 {
     function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
         if (msg.sender != owner) {
             uint256 allowed = _allowance[owner][msg.sender];
-            require(allowed > 0, "Insufficient allowance");
 
             if (allowed != type(uint256).max) _allowance[owner][msg.sender] = allowed - shares;     // will cause underflow if allowed = 0 without above require
         }

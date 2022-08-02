@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import {console} from "forge-std/console.sol";
-import {Test} from "forge-std/Test.sol";
-import {FractionalWrapper} from "../../lesson_4/FractionalWrapper.sol";
-import {FailedTransfers} from "../mocks/FailedTransfers.sol";
+import "forge-std/console.sol";
+import "forge-std/Test.sol";
+import "../../lesson_4/FractionalWrapper.sol";
+import "../mocks/FailedTransfers.sol";
 
 abstract contract ZeroState is Test {
+    using stdError for bytes;
+
     FractionalWrapper public wrapper;
     FailedTransfers public token;
 
@@ -194,7 +196,7 @@ contract WithTokensTest is WithTokens {
         address caller = address(3);
 
         vm.prank(caller);
-        vm.expectRevert("Insufficient allowance");
+        vm.expectRevert(stdError.arithmeticError);
         wrapper.redeem(10, receiver, user);
     }
 
@@ -228,7 +230,7 @@ contract WithTokensTest is WithTokens {
         address caller = address(3);
 
         vm.prank(caller);
-        vm.expectRevert("Insufficient allowance");
+        vm.expectRevert(stdError.arithmeticError);
         wrapper.redeem(10, receiver, user);
     }
 }
