@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import {console} from "forge-std/console.sol";
-import {Test} from "forge-std/Test.sol";
-import {FractionalWrapper} from "../../lesson_4/FractionalWrapper.sol";
-import {FailedTransfers} from "../mocks/FailedTransfers.sol";
+import "forge-std/console.sol";
+import "forge-std/Test.sol";
+import "../../lesson_4/FractionalWrapper.sol";
+import "../mocks/FailedTransfers.sol";
 
 abstract contract ZeroState is Test {
+    using stdError for bytes;
+
     FractionalWrapper public wrapper;
     FailedTransfers public token;
 
@@ -111,7 +113,6 @@ contract FractionalWrapperTest is ZeroState {
 
     function testMaxMint(address receiver) public {
         console.log("Retrieves max mint amount successfully");
-        console.log(wrapper.totalSupply());
         assertEq(wrapper.maxDeposit(receiver), type(uint256).max);
     }
 
@@ -189,6 +190,16 @@ contract WithTokensTest is WithTokens {
         assertEq(token.balanceOf(receiver), 10);
     }
 
+    function testCantWithdrawWithoutAllowance() public {
+        console.log("Cannot withdraw tokens without being owner and having allowance");
+        address receiver = address(2);
+        address caller = address(3);
+
+        vm.prank(caller);
+        vm.expectRevert(stdError.arithmeticError);
+        wrapper.redeem(10, receiver, user);
+    }
+
     function testRedeem() public {
         console.log("Redeems tokens successfully");
         address receiver = address(2);
@@ -211,5 +222,15 @@ contract WithTokensTest is WithTokens {
         assertEq(wrapper.balanceOf(caller), 0);
         assertEq(wrapper.balanceOf(receiver), 0);
         assertEq(token.balanceOf(receiver), wrapper.convertToAssets(10));
+    }
+
+    function testCantRedeemWithoutAllowance() public {
+        console.log("Cannot redeem tokens without being owner and having allowance");
+        address receiver = address(2);
+        address caller = address(3);
+
+        vm.prank(caller);
+        vm.expectRevert(stdError.arithmeticError);
+        wrapper.redeem(10, receiver, user);
     }
 }
