@@ -152,6 +152,12 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owning address
     ///@return shares amount of vault asset
     function withdraw(uint256 assets, address receiver, address owner) public returns (uint256 shares) {
+        if (msg.sender != owner) {
+            uint256 allowed = _allowance[owner][msg.sender];
+
+            if (allowed != type(uint256).max) _allowance[owner][msg.sender] = allowed - shares;     // will cause underflow if allowed = 0 without above require
+        }
+
         shares = _convertToShares(assets);
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
@@ -178,6 +184,12 @@ contract FractionalWrapper is ERC20 {
     ///@param owner the owner address
     ///@return assets amount of the underlying asset
     function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
+        if (msg.sender != owner) {
+            uint256 allowed = _allowance[owner][msg.sender];
+
+            if (allowed != type(uint256).max) _allowance[owner][msg.sender] = allowed - shares;     // will cause underflow if allowed = 0 without above require
+        }
+
         assets = _convertToAssets(shares);
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
